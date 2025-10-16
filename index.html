@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generator Menu Script </title>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(180deg, #f5f5f7 0%, #e8eaed 100%);
+      min-height: 100vh;
+    }
+    .glass {
+      backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.75);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    }
+    .btn-primary {
+      background: linear-gradient(180deg, #007aff, #0051d4);
+      transition: all 0.2s ease-in-out;
+    }
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+    .btn-copy {
+      background: linear-gradient(180deg, #34c759, #248a3d);
+    }
+    .input-box {
+      transition: box-shadow 0.2s ease;
+    }
+    .input-box:focus {
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.3);
+      outline: none;
+    }
+    .icon-preview {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      object-fit: contain;
+      background: #fafafa;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center p-8">
+
+  <div class="glass rounded-3xl p-10 w-full max-w-3xl">
+    <h1 class="text-3xl font-semibold text-center mb-8 text-gray-800">
+      Generator Menu Script 
+    </h1>
+
+    <div class="grid grid-cols-2 gap-5">
+      <div>
+        <label class="text-gray-600 text-sm">SID</label>
+        <input id="sid" type="text" value="555" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+
+      <div>
+        <label class="text-gray-600 text-sm">Header ID</label>
+        <input id="headerId" type="text" value="BETA_PROGRAM_VERSION" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+
+      <div>
+        <label class="text-gray-600 text-sm">Menu ID</label>
+        <input id="menuId" type="text" value="BG_T100N1" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+
+      <div>
+        <label class="text-gray-600 text-sm">Menu Title</label>
+        <input id="menuTitle" type="text" value="BG-T100N1 Budgeting Plan Master Request" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+
+      <div>
+        <label class="text-gray-600 text-sm">Navigate URL</label>
+        <input id="url" type="text" value="/BRM/Budget/EBudget.aspx" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+
+      <div class="flex items-end gap-3">
+        <div class="flex-1">
+          <label class="text-gray-600 text-sm">Icon URL</label>
+          <input id="icon" type="text" value="https://focusone-documents.s3.ap-southeast-1.amazonaws.com/f1erp_web_icon/item/icon_master.svg" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+        </div>
+        <img id="iconPreview" src="https://focusone-documents.s3.ap-southeast-1.amazonaws.com/f1erp_web_icon/item/icon_master.svg" class="icon-preview" alt="icon">
+      </div>
+
+      <div>
+        <label class="text-gray-600 text-sm">Web ID</label>
+        <input id="webId" type="text" value="ACCOUTING_FINANCIAL_SYSTEM" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+
+      <div>
+        <label class="text-gray-600 text-sm">Index</label>
+        <input id="index" type="number" value="2" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+
+      <div>
+        <label class="text-gray-600 text-sm">xType</label>
+        <input id="xType" type="text" value="Application" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+    </div>
+
+    <button id="generate" class="mt-8 w-full text-white py-3 rounded-xl btn-primary text-lg font-medium shadow-sm">
+      🔥 Generate Script
+    </button>
+
+    <textarea id="output" rows="20" class="mt-8 w-full border border-gray-300 rounded-xl p-4 font-mono text-sm bg-gray-50"></textarea>
+
+    <button id="copy" class="mt-4 w-full text-white py-3 rounded-xl btn-copy text-lg font-medium shadow-sm">
+      📋 Copy to Clipboard
+    </button>
+
+    <p class="text-center text-gray-400 text-xs mt-6">
+      © 2025 FocusOne DevTools — Aof
+    </p>
+  </div>
+
+  <script>
+    // ✅ Preview icon realtime
+    $("#icon").on("input", function () {
+      const url = $(this).val().trim();
+      $("#iconPreview").attr("src", url || "");
+    });
+
+    // ✅ Generate SQL script
+    $("#generate").click(() => {
+      const sid = $("#sid").val();
+      const headerId = $("#headerId").val();
+      const menuId = $("#menuId").val();
+      const menuTitle = $("#menuTitle").val();
+      const url = $("#url").val();
+      const icon = $("#icon").val();
+      const webId = $("#webId").val();
+      const index = $("#index").val();
+      const xType = $("#xType").val();
+      const dateNow = new Date().toISOString().slice(0, 10).replace(/-/g, '') + "000000";
+
+      const sql = `
+            INSERT INTO ACCFIN_MENU_ITEM (SID, HeaderID, xType, MenuID, MenuTitle, MenuSubtitle, xIndex, NAVIGATEURL, NAVIGATEIMAGE, Created_on, Created_by, Updated_on, Updated_by, WebID)
+            VALUES (N'${sid}', N'${headerId}', N'${xType}', N'${menuId}', N'${menuTitle}', N'${menuTitle}', ${index}, N'${url}', N'${icon}', N'${dateNow}', N'FOCUSONE', N'${dateNow}', N'FOCUSONE', N'${webId}');
+
+            INSERT INTO auth_mainprogram (objectid, objecttype, parentobjectid, SID, CREATED_ON, UPDATED_ON, UPDATED_BY, CREATED_BY, DESCRIPTION, tcode, command, MODULE, NameSpace, DELIMITEDDEBUG, DELIMITEDEXC, DLL, HelpLink, NameSpaceView, ClassView, ApplicationType)
+            VALUES (N'ACTIVITY', N'S', N'${menuId}', N'${sid}', N'${dateNow}', N'${dateNow}', N'FOCUSONE', N'FOCUSONE', N'${menuTitle}', N'', N'', N'', N'', N'', N'', N'', N'', N'', N'', N''),
+                (N'${menuId}', N'M', N'${menuId}', N'${sid}', N'${dateNow}', N'${dateNow}', N'FOCUSONE', N'FOCUSONE', N'${menuTitle}', N'', N'', N'', N'', N'', N'', N'', N'', N'', N'', N'');
+
+            INSERT INTO auth_profileobject (sid, profileid, parentobjectid, objectid, DESCRIPTION, objectvalue, objecttype, created_on, created_by, updated_on, updated_by)
+            VALUES (N'${sid}', N'000001', N'${menuId}', N'ACTIVITY', N'${menuTitle}', N'*', N'S', N'${dateNow}', N'FOCUSONE', N'${dateNow}', N'FOCUSONE'),
+                (N'${sid}', N'000001', N'${menuId}', N'${menuId}', N'${menuTitle}', N'*', N'M', N'${dateNow}', N'FOCUSONE', N'${dateNow}', N'FOCUSONE');
+            `;
+      $("#output").val(sql.trim());
+    });
+
+    // ✅ Copy script
+    $("#copy").click(() => {
+      navigator.clipboard.writeText($("#output").val());
+      alert("✅ คัดลอก SQL Script แล้ว!");
+    });
+  </script>
+
+</body>
+</html>
