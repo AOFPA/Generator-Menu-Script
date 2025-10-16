@@ -49,10 +49,15 @@
 
   <div class="glass rounded-3xl p-10 w-full max-w-3xl">
     <h1 class="text-3xl font-semibold text-center mb-8 text-gray-800">
-      Generator Menu Script 
+      Generator Menu Script V.1.0.1
     </h1>
 
     <div class="grid grid-cols-2 gap-5">
+      <div>
+        <label class="text-gray-600 text-sm">Table Name</label>
+        <input id="tableName" type="text" value="ACCFIN_MENU_ITEM" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+
       <div>
         <label class="text-gray-600 text-sm">SID</label>
         <input id="sid" type="text" value="555" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
@@ -135,10 +140,11 @@
       const webId = $("#webId").val();
       const index = $("#index").val();
       const xType = $("#xType").val();
+      const tableName = $("#tableName").val();
       const dateNow = new Date().toISOString().slice(0, 10).replace(/-/g, '') + "000000";
 
       const sql = `
-            INSERT INTO ACCFIN_MENU_ITEM (SID, HeaderID, xType, MenuID, MenuTitle, MenuSubtitle, xIndex, NAVIGATEURL, NAVIGATEIMAGE, Created_on, Created_by, Updated_on, Updated_by, WebID)
+            INSERT INTO ${tableName} (SID, HeaderID, xType, MenuID, MenuTitle, MenuSubtitle, xIndex, NAVIGATEURL, NAVIGATEIMAGE, Created_on, Created_by, Updated_on, Updated_by, WebID)
             VALUES (N'${sid}', N'${headerId}', N'${xType}', N'${menuId}', N'${menuTitle}', N'${menuTitle}', ${index}, N'${url}', N'${icon}', N'${dateNow}', N'FOCUSONE', N'${dateNow}', N'FOCUSONE', N'${webId}');
 
             INSERT INTO auth_mainprogram (objectid, objecttype, parentobjectid, SID, CREATED_ON, UPDATED_ON, UPDATED_BY, CREATED_BY, DESCRIPTION, tcode, command, MODULE, NameSpace, DELIMITEDDEBUG, DELIMITEDEXC, DLL, HelpLink, NameSpaceView, ClassView, ApplicationType)
