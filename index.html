@@ -6,6 +6,7 @@
   <title>Generator Menu Script </title>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
@@ -207,13 +208,16 @@ VALUES
       const status = $("#copyStatus");
       if (!output) {
         status.text("กรุณาสร้าง SQL ก่อนคัดลอก").removeClass("text-emerald-600").addClass("text-amber-600");
+        Swal.fire({ toast: true, position: "top-end", icon: "warning", title: "กรุณาสร้าง SQL ก่อนคัดลอก", showConfirmButton: false, timer: 2200, timerProgressBar: true });
         return;
       }
       try {
         await navigator.clipboard.writeText(output);
         status.text("คัดลอก SQL แล้ว").removeClass("text-amber-600").addClass("text-emerald-600");
+        Swal.fire({ toast: true, position: "top-end", icon: "success", title: "คัดลอก SQL แล้ว", showConfirmButton: false, timer: 1800, timerProgressBar: true });
       } catch {
         status.text("คัดลอกไม่สำเร็จ กรุณาอนุญาตการเข้าถึง Clipboard").removeClass("text-emerald-600").addClass("text-amber-600");
+        Swal.fire({ toast: true, position: "top-end", icon: "error", title: "คัดลอกไม่สำเร็จ", text: "กรุณาอนุญาตการเข้าถึง Clipboard", showConfirmButton: false, timer: 2800, timerProgressBar: true });
       }
     });
   </script>
