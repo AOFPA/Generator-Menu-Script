@@ -108,7 +108,10 @@
       </div>
 
         </div>
-        <button id="generate" class="btn-primary mt-6 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-sm">สร้าง SQL Script <span aria-hidden="true">→</span></button>
+        <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+          <button id="generate" class="btn-primary rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-sm">สร้าง SQL Script <span aria-hidden="true">→</span></button>
+          <button id="resetForm" type="button" class="rounded-xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50">คืนค่าเริ่มต้น</button>
+        </div>
       </section>
       <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
@@ -123,10 +126,47 @@
   </main>
 
   <script>
-    // ✅ Preview icon realtime
-    $("#icon").on("input", function () {
-      const url = $(this).val().trim();
-      $("#iconPreview").attr("src", url || "");
+    const formFieldIds = ["tableName", "sid", "xType", "headerId", "menuId", "index", "menuTitle", "menuSubtitle", "url", "icon", "webId"];
+    const storageKey = "generatorMenuScript.formValues";
+
+    function updateIconPreview() {
+      const iconUrl = $("#icon").val().trim();
+      $("#iconPreview").attr("src", iconUrl || "");
+    }
+
+    function saveFormValues() {
+      const values = Object.fromEntries(formFieldIds.map(id => [id, $(`#${id}`).val()]));
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(values));
+      } catch (error) {
+        console.warn("Unable to save form values in this browser.", error);
+      }
+    }
+
+    function restoreFormValues() {
+      try {
+        const savedValues = JSON.parse(localStorage.getItem(storageKey) || "{}");
+        formFieldIds.forEach(id => {
+          if (typeof savedValues[id] === "string") $(`#${id}`).val(savedValues[id]);
+        });
+      } catch (error) {
+        console.warn("Unable to restore saved form values.", error);
+      }
+      updateIconPreview();
+    }
+
+    formFieldIds.forEach(id => $(`#${id}`).on("input change", saveFormValues));
+    $("#icon").on("input", updateIconPreview);
+    restoreFormValues();
+
+    $("#resetForm").click(() => {
+      formFieldIds.forEach(id => {
+        const field = document.getElementById(id);
+        $(`#${id}`).val(field.defaultValue);
+      });
+      updateIconPreview();
+      saveFormValues();
+      Swal.fire({ toast: true, position: "top-end", icon: "success", title: "คืนค่าเริ่มต้นแล้ว", showConfirmButton: false, timer: 1800, timerProgressBar: true });
     });
 
     let generatedSql = "";
@@ -142,11 +182,20 @@
     }
 
     function highlightSql(sql) {
-      const escapedSql = escapeHtml(sql);
-      return escapedSql
-        .replace(/\b(INSERT INTO|VALUES)\b/gi, '<span class="text-sky-400">$1</span>')
-        .replace(/\b(SID|HeaderID|xType|MenuID|MenuTitle|MenuSubtitle|xIndex|NAVIGATEURL|NAVIGATEIMAGE|Created_on|Created_by|Updated_on|Updated_by|WebID|objectid|objecttype|parentobjectid|CREATED_ON|UPDATED_ON|UPDATED_BY|CREATED_BY|DESCRIPTION|tcode|command|MODULE|NameSpace|DELIMITEDDEBUG|DELIMITEDEXC|DLL|HelpLink|NameSpaceView|ClassView|ApplicationType|profileid|objectvalue|created_on|created_by|updated_on|updated_by)\b/gi, '<span class="text-violet-300">$1</span>')
-        .replace(/N&#39;(?:[^&#]|&#39;&#39;)*?&#39;|&#39;(?:[^&#]|&#39;&#39;)*?&#39;/g, '<span class="text-emerald-300">$&</span>');
+      const sqlKeywords = /\b(INSERT INTO|VALUES)\b/gi;
+      const sqlColumns = /\b(SID|HeaderID|xType|MenuID|MenuTitle|MenuSubtitle|xIndex|NAVIGATEURL|NAVIGATEIMAGE|Created_on|Created_by|Updated_on|Updated_by|WebID|objectid|objecttype|parentobjectid|CREATED_ON|UPDATED_ON|UPDATED_BY|CREATED_BY|DESCRIPTION|tcode|command|MODULE|NameSpace|DELIMITEDDEBUG|DELIMITEDEXC|DLL|HelpLink|NameSpaceView|ClassView|ApplicationType|profileid|objectvalue|created_on|created_by|updated_on|updated_by)\b/gi;
+      const stringLiteral = /(N'(?:''|[^'])*'|'(?:''|[^'])*')/g;
+
+      return sql.split(stringLiteral).map(part => {
+        if (/^N?'/.test(part)) return `<span class="text-emerald-300">${escapeHtml(part)}</span>`;
+        return escapeHtml(part)
+          .replace(sqlKeywords, '<span class="text-sky-400">$1</span>')
+          .replace(sqlColumns, '<span class="text-violet-300">$1</span>');
+      }).join("");
+    }
+
+    function sqlString(value) {
+      return value.replace(/'/g, "''");
     }
 
     // ✅ Generate SQL script
@@ -162,6 +211,20 @@
       const index = $("#index").val();
       const xType = $("#xType").val();
       const tableName = $("#tableName").val();
+      const values = { tableName, sid, xType, headerId, menuId, index, menuTitle, menuSubtitle, url, icon, webId };
+      const emptyFields = Object.entries(values).filter(([, value]) => String(value).trim() === "").map(([field]) => field);
+      if (emptyFields.length) {
+        Swal.fire({ toast: true, position: "top-end", icon: "warning", title: "กรุณากรอกข้อมูลให้ครบทุกช่อง", showConfirmButton: false, timer: 2500, timerProgressBar: true });
+        $(`#${emptyFields[0]}`).trigger("focus");
+        return;
+      }
+      const numericIndex = Number(index);
+      if (!Number.isSafeInteger(numericIndex) || numericIndex < 0) {
+        Swal.fire({ toast: true, position: "top-end", icon: "warning", title: "Index ต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป", showConfirmButton: false, timer: 2500, timerProgressBar: true });
+        $("#index").trigger("focus");
+        return;
+      }
+      const q = sqlString;
       const dateNow = new Date().toISOString().slice(0, 10).replace(/-/g, '') + "000000";
 
       generatedSql = `INSERT INTO ${tableName} (
@@ -170,10 +233,10 @@
     Updated_on, Updated_by, WebID
 )
 VALUES (
-    N'${sid}', N'${headerId}', N'${xType}', N'${menuId}',
-    N'${menuTitle}', N'${menuSubtitle}', ${index},
-    N'${url}', N'${icon}', N'${dateNow}', N'FOCUSONE',
-    N'${dateNow}', N'FOCUSONE', N'${webId}'
+    N'${q(sid)}', N'${q(headerId)}', N'${q(xType)}', N'${q(menuId)}',
+    N'${q(menuTitle)}', N'${q(menuSubtitle)}', ${numericIndex},
+    N'${q(url)}', N'${q(icon)}', N'${dateNow}', N'FOCUSONE',
+    N'${dateNow}', N'FOCUSONE', N'${q(webId)}'
 );
 
 INSERT INTO auth_mainprogram (
@@ -183,11 +246,11 @@ INSERT INTO auth_mainprogram (
     NameSpaceView, ClassView, ApplicationType
 )
 VALUES
-    (N'ACTIVITY', N'S', N'${menuId}', N'${sid}', N'${dateNow}', N'${dateNow}',
-     N'FOCUSONE', N'FOCUSONE', N'${menuTitle}', N'', N'', N'', N'', N'',
+    (N'ACTIVITY', N'S', N'${q(menuId)}', N'${q(sid)}', N'${dateNow}', N'${dateNow}',
+     N'FOCUSONE', N'FOCUSONE', N'${q(menuTitle)}', N'', N'', N'', N'', N'',
      N'', N'', N'', N'', N'', N''),
-    (N'${menuId}', N'M', N'${menuId}', N'${sid}', N'${dateNow}', N'${dateNow}',
-     N'FOCUSONE', N'FOCUSONE', N'${menuTitle}', N'', N'', N'', N'', N'',
+    (N'${q(menuId)}', N'M', N'${q(menuId)}', N'${q(sid)}', N'${dateNow}', N'${dateNow}',
+     N'FOCUSONE', N'FOCUSONE', N'${q(menuTitle)}', N'', N'', N'', N'', N'',
      N'', N'', N'', N'', N'', N'');
 
 INSERT INTO auth_profileobject (
@@ -195,9 +258,9 @@ INSERT INTO auth_profileobject (
     objecttype, created_on, created_by, updated_on, updated_by
 )
 VALUES
-    (N'${sid}', N'000001', N'${menuId}', N'ACTIVITY', N'${menuTitle}', N'*',
+    (N'${q(sid)}', N'000001', N'${q(menuId)}', N'ACTIVITY', N'${q(menuTitle)}', N'*',
      N'S', N'${dateNow}', N'FOCUSONE', N'${dateNow}', N'FOCUSONE'),
-    (N'${sid}', N'000001', N'${menuId}', N'${menuId}', N'${menuTitle}', N'*',
+    (N'${q(sid)}', N'000001', N'${q(menuId)}', N'${q(menuId)}', N'${q(menuTitle)}', N'*',
      N'M', N'${dateNow}', N'FOCUSONE', N'${dateNow}', N'FOCUSONE');`;
       $("#outputCode").html(highlightSql(generatedSql));
     });
