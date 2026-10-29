@@ -41,7 +41,10 @@
 <body class="min-h-screen p-4 sm:p-6 lg:p-10">
   <main class="mx-auto w-full max-w-7xl">
     <header class="mb-6">
-      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">FocusOne DevTools</p>
+      <div class="flex flex-wrap items-center gap-3">
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">FocusOne DevTools</p>
+        <span id="appVersion" class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">V1.1.0</span>
+      </div>
       <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">Generator Menu Script</h1>
       <p class="mt-1 text-sm text-slate-500">กรอกข้อมูลเมนู แล้วสร้าง SQL script พร้อมคัดลอกไปใช้งาน</p>
     </header>
@@ -170,6 +173,44 @@
     });
 
     let generatedSql = "";
+
+    const appVersion = "V1.1.0";
+    const versionStorageKey = "generatorMenuScript.lastSeenVersion";
+    const releaseNotes = [
+      { type: "Feature", text: "เพิ่ม Menu Subtitle พร้อมค่าเริ่มต้นภาษาไทย" },
+      { type: "Feature", text: "ปรับหน้าจอและ SQL Preview ให้อ่านง่าย พร้อมคัดลอก SQL" },
+      { type: "Feature", text: "แจ้งเตือนเมื่อสร้างหรือคัดลอก SQL สำเร็จ" },
+      { type: "Feature", text: "จำค่าฟอร์ม ตรวจสอบข้อมูล และคืนค่าเริ่มต้นได้" },
+      { type: "Fix", text: "Escape อัญประกาศเดี่ยวในข้อความก่อนนำไปสร้าง SQL" }
+    ];
+
+    $("#appVersion").text(appVersion);
+
+    async function showReleaseNotesIfNeeded() {
+      try {
+        if (localStorage.getItem(versionStorageKey) === appVersion) return;
+
+        const notesHtml = releaseNotes.map(note => `
+          <li style="margin: 0.5rem 0; text-align: left;">
+            <strong style="color: ${note.type === "Fix" ? "#d97706" : "#2563eb"};">${note.type}</strong>
+            <span>${note.text}</span>
+          </li>`).join("");
+
+        await Swal.fire({
+          title: `มีอะไรใหม่ ${appVersion}`,
+          html: `<ul style="padding-left: 1.25rem; margin: 0;">${notesHtml}</ul>`,
+          confirmButtonText: "เริ่มใช้งาน",
+          confirmButtonColor: "#2563eb",
+          width: "34rem"
+        });
+
+        localStorage.setItem(versionStorageKey, appVersion);
+      } catch (error) {
+        console.warn("Unable to show or save release notes state.", error);
+      }
+    }
+
+    showReleaseNotesIfNeeded();
 
     function escapeHtml(value) {
       return value.replace(/[&<>"']/g, character => ({
