@@ -43,7 +43,7 @@
     <header class="mb-6">
       <div class="flex flex-wrap items-center gap-3">
         <p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">FocusOne DevTools</p>
-        <span id="appVersion" class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">V1.1.0</span>
+        <span id="appVersion" class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">V1.2.0</span>
       </div>
       <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">Generator Menu Script</h1>
       <p class="mt-1 text-sm text-slate-500">กรอกข้อมูลเมนู แล้วสร้าง SQL script พร้อมคัดลอกไปใช้งาน</p>
@@ -119,7 +119,10 @@
       <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
           <div><h2 class="font-semibold text-slate-900">SQL Preview</h2><p class="mt-0.5 text-xs text-slate-500">กดสร้าง SQL เพื่ออัปเดตผลลัพธ์</p></div>
-          <button id="copy" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">คัดลอก</button>
+          <div class="flex items-center gap-2">
+            <button id="exportTxt" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">Export TXT</button>
+            <button id="copy" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">คัดลอก</button>
+          </div>
         </div>
         <pre id="output" aria-label="SQL Preview" class="min-h-[28rem] max-h-[70vh] overflow-auto bg-slate-950 p-5 font-mono text-xs leading-6 text-slate-100 sm:text-sm"><code id="outputCode" class="whitespace-pre"></code></pre>
         <p id="copyStatus" role="status" aria-live="polite" class="min-h-10 px-5 py-2 text-sm text-slate-500 sm:px-6">พร้อมคัดลอก SQL</p>
@@ -174,14 +177,15 @@
 
     let generatedSql = "";
 
-    const appVersion = "V1.1.0";
+    const appVersion = "V1.2.0";
     const versionStorageKey = "generatorMenuScript.lastSeenVersion";
     const releaseNotes = [
       { type: "Feature", text: "เพิ่ม Menu Subtitle พร้อมค่าเริ่มต้นภาษาไทย" },
       { type: "Feature", text: "ปรับหน้าจอและ SQL Preview ให้อ่านง่าย พร้อมคัดลอก SQL" },
       { type: "Feature", text: "แจ้งเตือนเมื่อสร้างหรือคัดลอก SQL สำเร็จ" },
       { type: "Feature", text: "จำค่าฟอร์ม ตรวจสอบข้อมูล และคืนค่าเริ่มต้นได้" },
-      { type: "Fix", text: "Escape อัญประกาศเดี่ยวในข้อความก่อนนำไปสร้าง SQL" }
+      { type: "Fix", text: "Escape อัญประกาศเดี่ยวในข้อความก่อนนำไปสร้าง SQL" },
+      { type: "Feature", text: "Export SQL Preview เป็นไฟล์ TXT โดยตั้งชื่อไฟล์จาก Table Name และวันที่" }
     ];
 
     $("#appVersion").text(appVersion);
@@ -211,6 +215,41 @@
     }
 
     showReleaseNotesIfNeeded();
+
+    function formatLocalDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}${month}${day}`;
+    }
+
+    function sanitizeFileName(value) {
+      return value.trim()
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, "_")
+        .replace(/\s+/g, "_")
+        .replace(/[. ]+$/g, "") || "table";
+    }
+
+    $("#exportTxt").click(() => {
+      if (!generatedSql) {
+        Swal.fire({ toast: true, position: "top-end", icon: "warning", title: "กรุณาสร้าง SQL ก่อน Export", showConfirmButton: false, timer: 2200, timerProgressBar: true });
+        return;
+      }
+
+      const tableName = sanitizeFileName($("#tableName").val());
+      const fileName = `S_XXXX_${tableName}_${formatLocalDate(new Date())}.txt`;
+      const file = new Blob([generatedSql], { type: "text/plain;charset=utf-8" });
+      const downloadUrl = URL.createObjectURL(file);
+      const downloadLink = document.createElement("a");
+      downloadLink.href = downloadUrl;
+      downloadLink.download = fileName;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      downloadLink.remove();
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 0);
+
+      Swal.fire({ toast: true, position: "top-end", icon: "success", title: `Export ${fileName} สำเร็จ`, showConfirmButton: false, timer: 2400, timerProgressBar: true });
+    });
 
     function escapeHtml(value) {
       return value.replace(/[&<>"']/g, character => ({
