@@ -64,6 +64,11 @@
       </div>
 
       <div>
+        <label class="text-gray-600 text-sm">xType</label>
+        <input id="xType" type="text" value="Application" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+
+      <div>
         <label class="text-gray-600 text-sm">Header ID</label>
         <input id="headerId" type="text" value="BETA_PROGRAM_VERSION" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
       </div>
@@ -74,8 +79,18 @@
       </div>
 
       <div>
+        <label class="text-gray-600 text-sm">Index</label>
+        <input id="index" type="number" value="2" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+
+      <div>
         <label class="text-gray-600 text-sm">Menu Title</label>
         <input id="menuTitle" type="text" value="BG-T100N1 Budgeting Plan Master Request" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
+      </div>
+
+      <div>
+        <label class="text-gray-600 text-sm">Menu Subtitle</label>
+        <input id="menuSubtitle" type="text" value="" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
       </div>
 
       <div>
@@ -96,15 +111,6 @@
         <input id="webId" type="text" value="ACCOUTING_FINANCIAL_SYSTEM" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
       </div>
 
-      <div>
-        <label class="text-gray-600 text-sm">Index</label>
-        <input id="index" type="number" value="2" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
-      </div>
-
-      <div>
-        <label class="text-gray-600 text-sm">xType</label>
-        <input id="xType" type="text" value="Application" class="w-full mt-1 p-2.5 rounded-lg border border-gray-300 input-box" />
-      </div>
     </div>
 
     <button id="generate" class="mt-8 w-full text-white py-3 rounded-xl btn-primary text-lg font-medium shadow-sm">
@@ -135,6 +141,7 @@
       const headerId = $("#headerId").val();
       const menuId = $("#menuId").val();
       const menuTitle = $("#menuTitle").val();
+      const menuSubtitle = $("#menuSubtitle").val();
       const url = $("#url").val();
       const icon = $("#icon").val();
       const webId = $("#webId").val();
@@ -145,7 +152,7 @@
 
       const sql = `
             INSERT INTO ${tableName} (SID, HeaderID, xType, MenuID, MenuTitle, MenuSubtitle, xIndex, NAVIGATEURL, NAVIGATEIMAGE, Created_on, Created_by, Updated_on, Updated_by, WebID)
-            VALUES (N'${sid}', N'${headerId}', N'${xType}', N'${menuId}', N'${menuTitle}', N'${menuTitle}', ${index}, N'${url}', N'${icon}', N'${dateNow}', N'FOCUSONE', N'${dateNow}', N'FOCUSONE', N'${webId}');
+            VALUES (N'${sid}', N'${headerId}', N'${xType}', N'${menuId}', N'${menuTitle}', N'${menuSubtitle}', ${index}, N'${url}', N'${icon}', N'${dateNow}', N'FOCUSONE', N'${dateNow}', N'FOCUSONE', N'${webId}');
 
             INSERT INTO auth_mainprogram (objectid, objecttype, parentobjectid, SID, CREATED_ON, UPDATED_ON, UPDATED_BY, CREATED_BY, DESCRIPTION, tcode, command, MODULE, NameSpace, DELIMITEDDEBUG, DELIMITEDEXC, DLL, HelpLink, NameSpaceView, ClassView, ApplicationType)
             VALUES (N'ACTIVITY', N'S', N'${menuId}', N'${sid}', N'${dateNow}', N'${dateNow}', N'FOCUSONE', N'FOCUSONE', N'${menuTitle}', N'', N'', N'', N'', N'', N'', N'', N'', N'', N'', N''),
