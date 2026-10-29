@@ -263,6 +263,7 @@ VALUES
     (N'${q(sid)}', N'000001', N'${q(menuId)}', N'${q(menuId)}', N'${q(menuTitle)}', N'*',
      N'M', N'${dateNow}', N'FOCUSONE', N'${dateNow}', N'FOCUSONE');`;
       $("#outputCode").html(highlightSql(generatedSql));
+      Swal.fire({ toast: true, position: "top-end", icon: "success", title: "สร้าง SQL สำเร็จ", showConfirmButton: false, timer: 1800, timerProgressBar: true });
     });
 
     // Copy script and show inline feedback
